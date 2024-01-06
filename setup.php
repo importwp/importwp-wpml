@@ -1,6 +1,32 @@
 <?php
 iwp_register_importer_addon('WPML', 'wpml', function (\ImportWP\Common\Addon\AddonInterface $addon) {
 
+    global $iwp_wpml_lang_code;
+
+    // select translated terms if they exist
+    add_filter('iwp/importer/template/post_term', function ($term, $tax) {
+
+        global $iwp_wpml_lang_code;
+
+        /**
+         * @var \SitePress $sitepress
+         */
+        global $sitepress;
+
+        if (!$sitepress->is_translated_taxonomy($tax)) return $term;
+
+        if (!empty($term) and !is_wp_error($term)) {
+            $term_id = apply_filters('wpml_object_id', $term->term_id, $tax, true, $iwp_wpml_lang_code);
+            $term  = get_term_by('id', $term_id, $tax);
+        }
+        return $term;
+    }, 10, 2);
+
+    add_filter('iwp/importer/mapper/post_exists_query', function ($query_args) {
+        $query_args['suppress_filters'] = true;
+        return $query_args;
+    });
+
     $addon->register_panel('WPML', 'wpml', function (\ImportWP\Common\Addon\AddonBasePanel $panel) {
 
         /**
@@ -51,8 +77,21 @@ iwp_register_importer_addon('WPML', 'wpml', function (\ImportWP\Common\Addon\Add
                 return;
             }
 
+            /**
+             * @var \SitePress $sitepress
+             */
+            global $sitepress;
+
             // save language
-            $language = trim($meta['language']['value']);
+            if (isset($meta['language'], $meta['language']['value'])) {
+                $language = trim($meta['language']['value']);
+            } else {
+                $language = $sitepress->get_default_language();
+            }
+
+            global $iwp_wpml_lang_code;
+            $iwp_wpml_lang_code = $language;
+
             iwp_wpml_set_post_language($api->object_id(), $language);
 
             $parent_id = 0;
