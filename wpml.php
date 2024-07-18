@@ -11,7 +11,7 @@
  */
 
 if (!defined('IWP_WPML_MIN_CORE_VERSION')) {
-    define('IWP_WPML_MIN_CORE_VERSION', '2.11.5');
+    define('IWP_WPML_MIN_CORE_VERSION', '2.14.0');
 }
 
 add_action('admin_init', 'iwp_wpml_check');
