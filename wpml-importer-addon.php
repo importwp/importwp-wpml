@@ -1,6 +1,16 @@
 <?php
+
 class WPMLImporterAddon extends \ImportWP\Common\AddonAPI\ImporterAddon
 {
+    private $_current_lng;
+    private $_lng_code;
+
+    // protected function can_run()
+    // {
+    //     // FIXME: this doesn't work
+    //     return in_array($this->get_mapper_id(), ['post']);
+    // }
+
     public function register($template_data)
     {
         $panel = $template_data->register_panel('WPML');
@@ -88,6 +98,30 @@ class WPMLImporterAddon extends \ImportWP\Common\AddonAPI\ImporterAddon
         return $languages;
     }
 
+    public function before_row($record)
+    {
+        $this->_current_lng = apply_filters('wpml_current_language', null);
+
+        /**
+         * @var \SitePress $sitepress
+         */
+        global $sitepress;
+
+        if ($language = $record->get_value('wpml', 'language')) {
+            $this->_lng_code = trim($language);
+        } else {
+            $this->_lng_code = $sitepress->get_default_language();
+        }
+
+        // set language of imported item.
+        do_action('wpml_switch_language', $this->_lng_code);
+    }
+
+    public function after_row()
+    {
+        // reset language
+        do_action('wpml_switch_language', $this->_current_lng);
+    }
 
     public function save($data)
     {
@@ -108,8 +142,6 @@ class WPMLImporterAddon extends \ImportWP\Common\AddonAPI\ImporterAddon
 
                 global $iwp_wpml_lang_code;
                 $iwp_wpml_lang_code = $language;
-
-                $this->set_post_language($data->get_id(), $language);
 
                 $parent_id = 0;
                 $post_type = iwp()->importer->getSetting('post_type');
@@ -147,53 +179,21 @@ class WPMLImporterAddon extends \ImportWP\Common\AddonAPI\ImporterAddon
                         break;
                 }
 
+
+                // create and connect translations
                 if ($parent_id !== $data->get_id() && $parent_id > 0) {
-                    $this->set_post_as_translation($data->get_id(), $parent_id, $language);
+                    $post_type = 'post_' . get_post_type($data->get_id());
+                    $trid = $sitepress->get_element_trid($parent_id, $post_type);
+                    if ($trid) {
+                        $tid = $sitepress->set_element_language_details($data->get_id(), $post_type, $trid, $language, null, false);
+                    }
                 }
             }
         }
     }
 
-    public function set_post_language($post_id, $post_language_code = false)
-    {
-        /**
-         * @var \SitePress $sitepress
-         */
-        global $sitepress;
-
-        if (!$post_language_code) {
-            $post_language_code = get_post_meta($post_id, '_wpml_language', true);
-            $post_language_code = $post_language_code ? $post_language_code : $sitepress->get_default_language();
-        }
-
-        $wpml_translations = new WPML_Translations($sitepress);
-        $post_element      = new WPML_Post_Element($post_id, $sitepress);
-        $wpml_translations->set_language_code($post_element, $post_language_code);
-    }
-
-    public function set_post_as_translation($post_element, $parent_post_element, $lang)
-    {
-        /**
-         * @var \SitePress $sitepress
-         */
-        global $sitepress;
-        $wpml_translations = new WPML_Translations($sitepress);
-
-        if (!is_a($post_element, 'WPML_Post_Element')) {
-            $post_element = new WPML_Post_Element($post_element, $sitepress);
-        }
-
-        if (!is_a($parent_post_element, 'WPML_Post_Element')) {
-            $parent_post_element = new WPML_Post_Element($parent_post_element, $sitepress);
-        }
-
-        $wpml_translations->set_language_code($post_element, $lang);
-        $wpml_translations->set_source_element($post_element, $parent_post_element);
-    }
-
     public function get_post_by_cf($field, $value, $post_type, $id)
     {
-
         $query = new \WP_Query(array(
             'post_type' => $post_type,
             'posts_per_page' => 1,
@@ -207,7 +207,9 @@ class WPMLImporterAddon extends \ImportWP\Common\AddonAPI\ImporterAddon
                     'value' => $value
                 )
             ),
-            'post_status' => 'any'
+            'post_status' => 'any',
+            // needed for wpml integration
+            'suppress_filters' => true
         ));
         if ($query->have_posts()) {
             return $query->posts[0];
