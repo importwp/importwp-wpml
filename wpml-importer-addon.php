@@ -46,36 +46,47 @@ class WPMLImporterAddon extends \ImportWP\Common\AddonAPI\ImporterAddon
 
     public function before_import()
     {
-        add_filter('iwp/importer/mapper/post_exists_query', function ($query_args) {
-            $query_args['suppress_filters'] = true;
-            return $query_args;
-        });
+        add_filter('iwp/importer/mapper/post_exists_query', [$this, 'suppress_query_filters']);
+        add_filter('iwp/woocommerce/importer/product/get_product_id_args', [$this, 'suppress_query_filters']);
 
-        // select translated terms if they exist
-        add_filter('iwp/importer/template/post_term', function ($term, $tax) {
+        add_filter('iwp/importer/template/post_term', [$this, 'get_translated_terms'], 10, 2);
+    }
 
-            global $iwp_wpml_lang_code;
+    public function after_import()
+    {
+        remove_filter('iwp/importer/mapper/post_exists_query', [$this, 'suppress_query_filters']);
+        remove_filter('iwp/woocommerce/importer/product/get_product_id_args', [$this, 'suppress_query_filters']);
+        remove_filter('iwp/importer/template/post_term', [$this, 'get_translated_terms']);
+    }
 
-            /**
-             * @var \SitePress $sitepress
-             */
-            global $sitepress;
+    public function suppress_query_filters($query_args)
+    {
+        $query_args['suppress_filters'] = true;
+        return $query_args;
+    }
 
-            if (!$sitepress->is_translated_taxonomy($tax)) return $term;
+    /**
+     * Select translated terms if they exist
+     */
+    public function get_translated_terms($term, $tax)
+    {
+        /**
+         * @var \SitePress $sitepress
+         */
+        global $sitepress, $iwp_wpml_lang_code;
 
-            if (!empty($term) and !is_wp_error($term)) {
-                $term_id = apply_filters('wpml_object_id', $term->term_id, $tax, true, $iwp_wpml_lang_code);
-                $term  = get_term_by('id', $term_id, $tax);
-            }
-            return $term;
-        }, 10, 2);
+        if (!$sitepress->is_translated_taxonomy($tax)) return $term;
+
+        if (!empty($term) and !is_wp_error($term)) {
+            $term_id = apply_filters('wpml_object_id', $term->term_id, $tax, true, $iwp_wpml_lang_code);
+            $term  = get_term_by('id', $term_id, $tax);
+        }
+        return $term;
     }
 
     private function get_sitepress_languages()
     {
-
         /**
-         * When running this is null.
          * @var \SitePress $sitepress
          */
         global $sitepress;
@@ -100,12 +111,12 @@ class WPMLImporterAddon extends \ImportWP\Common\AddonAPI\ImporterAddon
 
     public function before_row($record)
     {
-        $this->_current_lng = apply_filters('wpml_current_language', null);
-
         /**
          * @var \SitePress $sitepress
          */
         global $sitepress;
+
+        $this->_current_lng = apply_filters('wpml_current_language', null);
 
         if ($language = $record->get_value('wpml', 'language')) {
             $this->_lng_code = trim($language);
@@ -185,7 +196,7 @@ class WPMLImporterAddon extends \ImportWP\Common\AddonAPI\ImporterAddon
                     $post_type = 'post_' . get_post_type($data->get_id());
                     $trid = $sitepress->get_element_trid($parent_id, $post_type);
                     if ($trid) {
-                        $tid = $sitepress->set_element_language_details($data->get_id(), $post_type, $trid, $language, null, false);
+                        $sitepress->set_element_language_details($data->get_id(), $post_type, $trid, $language, null, false);
                     }
                 }
             }
