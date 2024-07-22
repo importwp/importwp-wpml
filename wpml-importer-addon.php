@@ -8,7 +8,7 @@ class WPMLImporterAddon extends \ImportWP\Common\AddonAPI\ImporterAddon
     protected function can_run()
     {
         $template_id = $this->get_template_id();
-        $is_allowed = in_array($template_id, ['page', 'post', 'custom-post-type']);
+        $is_allowed = in_array($template_id, ['page', 'post', 'custom-post-type', 'term']);
         $is_allowed = apply_filters('iwp/wpml/can_run', $is_allowed, $template_id);
         return $is_allowed;
     }
@@ -157,7 +157,6 @@ class WPMLImporterAddon extends \ImportWP\Common\AddonAPI\ImporterAddon
                 $iwp_wpml_lang_code = $language;
 
                 $parent_id = 0;
-                $post_type = iwp()->importer->getSetting('post_type');
                 $parent_type = isset($panel_data['_translation'], $panel_data['_translation']['_translation_type']) ? trim($panel_data['_translation']['_translation_type']) : false;
                 $translation = isset($panel_data['_translation'], $panel_data['_translation']['translation']) ? trim($panel_data['_translation']['translation']) : false;
 
@@ -170,35 +169,74 @@ class WPMLImporterAddon extends \ImportWP\Common\AddonAPI\ImporterAddon
                     return;
                 }
 
-                switch ($parent_type) {
-                    case 'name':
-                    case 'slug':
-                        // name or slug
-                        $page = get_posts(array('name' => sanitize_title($translation), 'post_type' => $post_type));
-                        if ($page) {
-                            $parent_id = intval($page[0]->ID);
-                        }
-                        break;
-                    case 'id':
-                        $parent_id = intval($translation);
-                        break;
-                    case 'column':
+                if ($this->get_template_id() === 'term') {
 
-                        $temp_id = $this->get_post_by_cf('_iwp_wpml_tref', $translation, $post_type, $data->get_id());
-                        if (intval($temp_id > 0)) {
-                            $parent_id = intval($temp_id);
-                        }
+                    //
+                    $taxonomy = iwp()->importer->getSetting('taxonomy');
+                    switch ($parent_type) {
+                        case 'name':
 
-                        break;
+                            $term = get_term_by('name', $translation, $taxonomy);
+                            if ($term) {
+                                $parent_id = intval($term->term_id);
+                            }
+
+                            break;
+                        case 'slug':
+                            // name or slug
+                            $term = get_term_by('slug', $translation['parent'], $taxonomy);
+                            if ($term) {
+                                $parent_id = intval($term->term_id);
+                            }
+                            break;
+                        case 'id':
+                            $parent_id = intval($translation);
+                            break;
+                        case 'column':
+
+                            $temp_id = $this->get_term_by_cf('_iwp_wpml_tref', $translation, $taxonomy);
+                            if (intval($temp_id > 0) && $temp_id !== $data->get_id()) {
+                                $parent_id = intval($temp_id);
+                            }
+
+                            break;
+                    }
+
+                    $wpml_el_type = 'tax_' . $taxonomy;
+                } else {
+
+                    $post_type = iwp()->importer->getSetting('post_type');
+                    switch ($parent_type) {
+                        case 'name':
+                        case 'slug':
+                            // name or slug
+                            $page = get_posts(array('name' => sanitize_title($translation), 'post_type' => $post_type));
+                            if ($page) {
+                                $parent_id = intval($page[0]->ID);
+                            }
+                            break;
+                        case 'id':
+                            $parent_id = intval($translation);
+                            break;
+                        case 'column':
+
+                            $temp_id = $this->get_post_by_cf('_iwp_wpml_tref', $translation, $post_type, $data->get_id());
+                            if (intval($temp_id > 0)) {
+                                $parent_id = intval($temp_id);
+                            }
+
+                            break;
+                    }
+
+                    $wpml_el_type = 'post_' . get_post_type($data->get_id());
                 }
-
 
                 // create and connect translations
                 if ($parent_id !== $data->get_id() && $parent_id > 0) {
-                    $post_type = 'post_' . get_post_type($data->get_id());
-                    $trid = $sitepress->get_element_trid($parent_id, $post_type);
+
+                    $trid = $sitepress->get_element_trid($parent_id, $wpml_el_type);
                     if ($trid) {
-                        $sitepress->set_element_language_details($data->get_id(), $post_type, $trid, $language, null, false);
+                        $sitepress->set_element_language_details($data->get_id(), $wpml_el_type, $trid, $language, null, false);
                     }
                 }
             }
@@ -227,6 +265,28 @@ class WPMLImporterAddon extends \ImportWP\Common\AddonAPI\ImporterAddon
         if ($query->have_posts()) {
             return $query->posts[0];
         }
+        return false;
+    }
+
+    public function get_term_by_cf($field, $value, $taxonomy)
+    {
+        $terms = get_terms([
+            'taxonomy' => $taxonomy,
+            'fields' => 'ids',
+            'hide_empty' => false,
+            'meta_query' => [
+                [
+                    'key' =>  $field,
+                    'value' => $value,
+                    'compare' => '='
+                ]
+            ]
+        ]);
+
+        if (!is_wp_error($terms)) {
+            return $terms[0];
+        }
+
         return false;
     }
 }
