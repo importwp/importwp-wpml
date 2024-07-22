@@ -5,11 +5,13 @@ class WPMLImporterAddon extends \ImportWP\Common\AddonAPI\ImporterAddon
     private $_current_lng;
     private $_lng_code;
 
-    // protected function can_run()
-    // {
-    //     // FIXME: this doesn't work
-    //     return in_array($this->get_mapper_id(), ['post']);
-    // }
+    protected function can_run()
+    {
+        $template_id = $this->get_template_id();
+        $is_allowed = in_array($template_id, ['page', 'post', 'custom-post-type']);
+        $is_allowed = apply_filters('iwp/wpml/can_run', $is_allowed, $template_id);
+        return $is_allowed;
+    }
 
     public function register($template_data)
     {
@@ -161,7 +163,7 @@ class WPMLImporterAddon extends \ImportWP\Common\AddonAPI\ImporterAddon
 
                 // flag this on the post for future searches
                 if ($parent_type == 'column') {
-                    $data->update_meta('_iwp_wpml_post_translation', trim($panel_data['_translation']['_translation_ref']));
+                    $data->update_meta('_iwp_wpml_tref', trim($panel_data['_translation']['_translation_ref']));
                 }
 
                 if (empty($translation)) {
@@ -182,7 +184,7 @@ class WPMLImporterAddon extends \ImportWP\Common\AddonAPI\ImporterAddon
                         break;
                     case 'column':
 
-                        $temp_id = $this->get_post_by_cf('_iwp_wpml_post_translation', $translation, $post_type, $data->get_id());
+                        $temp_id = $this->get_post_by_cf('_iwp_wpml_tref', $translation, $post_type, $data->get_id());
                         if (intval($temp_id > 0)) {
                             $parent_id = intval($temp_id);
                         }
