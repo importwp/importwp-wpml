@@ -5,7 +5,7 @@
  * Plugin URI: https://www.importwp.com
  * Description: WPML Integration for ImportWP
  * Author: James Collings <james@jclabs.co.uk>
- * Version: __STABLE_TAG__ 
+ * Version: 0.0.1 
  * Author URI: https://www.importwp.com
  * Network: True
  */
