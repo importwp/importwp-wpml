@@ -19,23 +19,15 @@ add_action('admin_init', 'iwp_wpml_check');
 
 function iwp_wpml_requirements_met()
 {
-    if(!is_admin()){
-        return false;
-    }
-    
-    if(!current_user_can('activate_plugins')){
-        return false;
-    }
-    
-    if(!class_exists('\SitePress')){
+    if (!class_exists('\SitePress')) {
         return false;
     }
 
-    if(!function_exists('import_wp')){
+    if (!function_exists('import_wp')) {
         return false;
     }
 
-    if(version_compare(IWP_VERSION, IWP_WPML_MIN_CORE_VERSION, '<')){
+    if (version_compare(IWP_VERSION, IWP_WPML_MIN_CORE_VERSION, '<')) {
         return false;
     }
 
