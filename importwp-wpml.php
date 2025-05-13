@@ -11,14 +11,35 @@
  */
 
 if (!defined('IWP_WPML_MIN_CORE_VERSION')) {
-    define('IWP_WPML_MIN_CORE_VERSION', '2.14.0');
+    define('IWP_WPML_MIN_CORE_VERSION', '2.14.1');
 }
+
 
 add_action('admin_init', 'iwp_wpml_check');
 
 function iwp_wpml_requirements_met()
 {
-    return false === (is_admin() && current_user_can('activate_plugins') &&  (!class_exists('SitePress') || (!function_exists('import_wp_pro') && !function_exists('import_wp')) || version_compare(IWP_VERSION, IWP_WPML_MIN_CORE_VERSION, '<')));
+    if(!is_admin()){
+        return false;
+    }
+    
+    if(!current_user_can('activate_plugins')){
+        return false;
+    }
+    
+    if(!class_exists('\SitePress')){
+        return false;
+    }
+
+    if(!function_exists('import_wp')){
+        return false;
+    }
+
+    if(version_compare(IWP_VERSION, IWP_WPML_MIN_CORE_VERSION, '<')){
+        return false;
+    }
+
+    return true;
 }
 
 function iwp_wpml_check()
@@ -61,6 +82,6 @@ add_action('plugins_loaded', 'iwp_wpml_setup', 9);
 function iwp_wpml_notice()
 {
     echo '<div class="error">';
-    echo '<p><strong>Import WP - WPML Importer Addon</strong> requires that you have <strong>Import WP v' . IWP_WPML_MIN_CORE_VERSION . ' or newer</strong>, and <strong>wpml</strong> installed.</p>';
+    echo '<p><strong>Import WP - WPML Importer Addon</strong> requires that you have <strong>Import WP v' . IWP_WPML_MIN_CORE_VERSION . ' or newer</strong>, and <strong>WPML</strong> installed.</p>';
     echo '</div>';
 }
