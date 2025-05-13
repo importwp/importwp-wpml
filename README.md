@@ -1,6 +1,6 @@
 # Import WP WPML Addon
 
-Requires Import WP: 2.6.2
+Requires Import WP: 2.14.0
 
 **Version: 0.0.1**
 
