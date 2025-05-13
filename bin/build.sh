@@ -29,7 +29,7 @@ if [ -d "$FOLDER" ]; then rm -Rf $FOLDER; fi
 git clone --branch $BRANCH git@github.com:importwp/importwp-wpml.git $FOLDER
 cd $FOLDER
 git rm -rf .
-rsync -av .. . --exclude '.git' --exclude '.github' --exclude 'bin' --exclude "$FOLDER" --exclude 'node_modules' --exclude 'src' --exclude 'tests' --exclude 'vendor' --exclude '.babelrc' --exclude '.gitattributes' --exclude '.gitignore' --exclude '.phpcs.xml.dist' --exclude '.phpunit.result.cache' --exclude '.travis.yml' --exclude 'composer.json' --exclude 'composer.lock' --exclude 'package-lock.json' --exclude 'package.json' --exclude 'phpunit.xml.dist' --exclude 'webpack.config.js' --exclude '.wp-env.json'
+rsync -av .. . --exclude '.git' --exclude '.github' --exclude 'bin' --exclude "$FOLDER" --exclude 'node_modules' --exclude 'src' --exclude 'tests' --exclude 'vendor' --exclude '.babelrc' --exclude '.gitattributes' --exclude '.gitignore' --exclude '.phpcs.xml.dist' --exclude '.phpunit.result.cache' --exclude '.travis.yml' --exclude 'composer.json' --exclude 'composer.lock' --exclude 'package-lock.json' --exclude 'pnpm-lock.yaml' --exclude 'package.json' --exclude 'phpunit.xml.dist' --exclude 'webpack.config.js' --exclude '.wp-env.json'
 
 # Set version numbers
 sed -i -r "s/^\*\*Version: (.+)\*\*$/\*\*Version: $TAG\*\*/g" README.md

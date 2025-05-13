@@ -8,5 +8,10 @@
         "tests": {
             "phpVersion": "8.1"
         }
+    },
+    "config": {
+        "WP_DEBUG": true,
+        "WP_DEBUG_LOG": true,
+        "WP_DEBUG_DISPLAY": false
     }
 }
