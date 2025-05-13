@@ -1,0 +1,7 @@
+"ID"," Title"," Content"," Language"," Translation"," Translation ID"
+1," Page one"," Example page one content"," en"," "," "
+2," Page un"," Exemple de contenu de la première page"," fr"," Page one","1"
+3," Pagina uno"," Esempio di contenuto della prima pagina"," it"," Page one","1"
+4," Page two"," Example page two content"," en"," "," "
+5," Pagina due"," Esempio di contenuto della seconda pagina"," it"," Page two","4"
+6," Page deux"," Exemple de contenu de la page deux"," fr"," Page two", "4"
