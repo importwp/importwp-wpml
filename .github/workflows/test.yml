@@ -29,6 +29,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Install Composer
+        run: pnpm composer install
+
       - name: Run Tests
         run: pnpm phpunit
 
