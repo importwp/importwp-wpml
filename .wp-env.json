@@ -2,7 +2,9 @@
     "core": null,
     "plugins": [
         "importwp/importwp",
-        "."
+        ".",
+        "https://downloads.wordpress.org/plugin/woocommerce.zip",
+        "jcollings/importwp-woocommerce"
     ],
     "env": {
         "tests": {
