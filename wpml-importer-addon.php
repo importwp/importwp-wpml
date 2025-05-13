@@ -8,7 +8,7 @@ class WPMLImporterAddon extends \ImportWP\Common\AddonAPI\ImporterAddon
     protected function can_run()
     {
         $template_id = $this->get_template_id();
-        $is_allowed = in_array($template_id, ['page', 'post', 'custom-post-type', 'term']);
+        $is_allowed = in_array($template_id, ['page', 'post', 'custom-post-type', 'term', 'woocommerce-product']);
         $is_allowed = apply_filters('iwp/wpml/can_run', $is_allowed, $template_id);
         return $is_allowed;
     }
