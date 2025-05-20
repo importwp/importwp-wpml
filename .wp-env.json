@@ -1,11 +1,19 @@
 {
-    "core": null,
     "plugins": [
-        "importwp/importwp",
-        ".",
-        "https://downloads.wordpress.org/plugin/woocommerce.zip",
-        "jcollings/importwp-woocommerce"
+        "https://downloads.wordpress.org/plugin/jc-importer.zip",
+        "jcollings/importwp-resources/sitepress-multilingual-cms",
+        "jcollings/importwp-resources/wpml-string-translation",
+        "."
     ],
+    "mappings": {
+        "wp-content/plugins/advanced-custom-fields-pro": "jcollings/importwp-resources/advanced-custom-fields-pro",
+        "wp-content/plugins/acfml": "jcollings/importwp-resources/acfml",
+        "wp-content/plugins/woocommerce": "https://downloads.wordpress.org/plugin/woocommerce.zip",
+        "wp-content/plugins/woocommerce-multilingual": "jcollings/importwp-resources/woocommerce-multilingual",
+        "wp-content/plugins/importwp-woocommerce": "jcollings/importwp-woocommerce",
+        "wp-content/plugins/jet-engine": "jcollings/importwp-resources/jet-engine",
+        "wp-content/plugins/importwp-jet-engine": "jcollings/importwp-jet-engine"
+    },
     "env": {
         "tests": {
             "phpVersion": "8.1"
